@@ -117,31 +117,41 @@ export default {
         alert("Completa todos los campos.");
         return;
       }
-
       const usuarios = this.getUsuarios();
       const estudiante = usuarios.find(
         (u) => u.correo === this.correoEstudianteSeleccionado
       );
-
       if (!estudiante) {
         alert("Estudiante no encontrado.");
         return;
       }
-
-      estudiante.tutorias = estudiante.tutorias || [];
-      estudiante.tutorias.push({
+      const nuevaTutoria = {
         fecha: this.fecha,
         hora: this.hora,
         asunto: this.asunto,
-      });
+        estudiante: estudiante.nombre,
+        estudianteCorreo: estudiante.correo
+      };
+      estudiante.tutorias = estudiante.tutorias || [];
+      estudiante.tutorias.push({ ...nuevaTutoria });
+
+      const profesor = usuarios.find(
+        (u) => u.correo === this.usuario.correo && u.rol === "profesor"
+      );
+      if (profesor) {
+        profesor.tutoriasAsignadas = profesor.tutoriasAsignadas || [];
+        profesor.tutoriasAsignadas.push({ ...nuevaTutoria });
+      }
 
       localStorage.setItem("usuarios", JSON.stringify(usuarios));
+
       alert("📌 Tutoría asignada con éxito.");
 
       this.fecha = "";
       this.hora = "";
       this.asunto = "";
     },
+
     cerrarSesion() {
       localStorage.removeItem("usuario");
       this.$router.push("/");

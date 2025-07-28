@@ -78,7 +78,7 @@ export default {
       const usuario = JSON.parse(localStorage.getItem("usuario"));
       if (!usuario || usuario.rol !== "administrador") {
         alert("Acceso no autorizado.");
-        window.location.href = "index.html";
+        this.$router.push("/");
       }
     },
     cerrarSesion() {
@@ -92,22 +92,49 @@ export default {
     },
     asignarTutor() {
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const index = usuarios.findIndex(u => u.correo === this.seleccion.estudiante);
-      if (index >= 0) {
-        usuarios[index].tutor = this.seleccion.profesor;
-        localStorage.setItem("usuarios", JSON.stringify(usuarios));
-        alert("Tutor asignado correctamente.");
+
+      const indexEstudiante = usuarios.findIndex(u => u.correo === this.seleccion.estudiante);
+      if (indexEstudiante < 0) return alert("Estudiante no encontrado.");
+
+      usuarios[indexEstudiante].tutor = this.seleccion.profesor;
+
+      const profesor = usuarios.find(u => u.nombre === this.seleccion.profesor && u.rol === "profesor");
+      if (!profesor) return alert("Profesor no encontrado.");
+
+      if (!profesor.estudiantesAsignados.includes(this.seleccion.estudiante)) {
+        profesor.estudiantesAsignados.push(this.seleccion.estudiante);
       }
+
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      alert("Tutor asignado correctamente.");
     },
+
     removerTutor() {
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const index = usuarios.findIndex(u => u.correo === this.seleccion.estudiante);
-      if (index >= 0) {
-        usuarios[index].tutor = "";
-        localStorage.setItem("usuarios", JSON.stringify(usuarios));
-        alert("Tutor removido correctamente.");
+
+      const indexEstudiante = usuarios.findIndex(u => u.correo === this.seleccion.estudiante && u.rol === 'estudiante');
+      if (indexEstudiante < 0) {
+        alert("Estudiante no encontrado.");
+        return;
       }
+
+      const tutorAsignado = usuarios[indexEstudiante].tutor;
+      if (!tutorAsignado) {
+        alert("El estudiante no tiene tutor asignado.");
+        return;
+      }
+
+      const profesor = usuarios.find(u => u.nombre === tutorAsignado && u.rol === "profesor");
+      if (profesor && profesor.estudiantesAsignados) {
+        profesor.estudiantesAsignados = profesor.estudiantesAsignados.filter(correo => correo !== this.seleccion.estudiante);
+      }
+
+      usuarios[indexEstudiante].tutor = "";
+
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      alert("Tutor removido correctamente.");
     },
+
     crearUsuario() {
       const u = this.nuevoUsuario;
 
@@ -174,9 +201,6 @@ export default {
         contrasena: ""
       };
     },
-    mostrarCampos() {
-      // Esto está implícito con el v-if en la plantilla
-    }
   },
   mounted() {
     this.validarSesionAdmin();

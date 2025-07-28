@@ -13,7 +13,6 @@ const routes = [
   { path: '/profesor', component: ProfesorView },
   { path: '/tutorias-profesor', component: TutoriasProfesorView },
   { path: '/tutorias', component: TutoriasView },
-  // añade los demás
 ]
 
 const router = createRouter({
